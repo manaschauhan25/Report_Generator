@@ -53,20 +53,20 @@ Frequency={
 }
 
 
-Threshold={
-    '5XX':5,
-    'Bus Server':10,
-    'SQL Server Database':1,
-    'Bus Dead':50,
-    'IO':'90 percent',
-    'DTU':'90 percent',
-    'Data IO':'90 percent',
-    'Event Hub Server':1,
-    '[Fivetran':None,
-    'Fivetran':None,
-    'fivetran':None,
-    'dbt':None
-}
+# Threshold={
+#     '5XX':5,
+#     'Bus Server':10,
+#     'SQL Server Database':1,
+#     'Bus Dead':50,
+#     'IO':'90 percent',
+#     'DTU':'90 percent',
+#     'Data IO':'90 percent',
+#     'Event Hub Server':1,
+#     '[Fivetran':None,
+#     'Fivetran':None,
+#     'fivetran':None,
+#     'dbt':None
+# }
 newcolumns={
     'Remarks':11,
     'Resolution Summary':12
@@ -124,6 +124,25 @@ def changes_to_minandsec(x):
     
     return str(minutes) + ' minutes and '+ str(seconds) + ' seconds'
 
+def threshold(x):
+    for i in range(0,len(x)):
+        a=x['Short description'][i].split(" ")
+        s=set(a)
+        # print(s)
+        if 'Equal' in s and 'to' in s:
+            # print(s)
+            index=a.index('to')+1
+            x.at[i,'Threshold']=a[index]
+        elif 'Equal' in s:
+            index=a.index('Equal')+1
+            x.at[i,'Threshold']=a[index]
+        elif 'Than' in s:
+            index=a.index('Than')+1
+            x.at[i,'Threshold']=a[index]
+        else:
+            x.at[i,'Threshold']='NA'
+    return x
+
 
 warnings.filterwarnings("ignore")
 def create_Excel(file,tofile):
@@ -166,13 +185,15 @@ def create_Excel(file,tofile):
     
     
     #Inserting Threshold values
-    for key,value in Threshold.items():
-        for i in range(0,len(df)):
-            if key in df['Short description'].iloc[i]:
-                if isinstance(value, str):
-                    df.at[i, 'Threshold'] = value
-                elif value!=None:
-                    df.at[i, 'Threshold'] = int(value) 
+    # for key,value in Threshold.items():
+    #     for i in range(0,len(df)):
+    #         if key in df['Short description'].iloc[i]:
+    #             if isinstance(value, str):
+    #                 df.at[i, 'Threshold'] = value
+    #             elif value!=None:
+    #                 df.at[i, 'Threshold'] = int(value) 
+
+    df=threshold(df)
     
     #For inserting Frequency
     for key,value in Frequency.items():
